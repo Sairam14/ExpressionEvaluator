@@ -42,7 +42,7 @@
 
     public void testAnd(){
         Check(true, "A==A and B==b");
-        //Check(false, "A==A and B==''");
+        Check(false, "A==A and B==''");
         Check(false, "A==B and C==D");
     }
 
