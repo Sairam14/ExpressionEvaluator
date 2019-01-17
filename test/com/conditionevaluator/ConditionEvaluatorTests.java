@@ -27,6 +27,23 @@ public class ConditionEvaluatorTests {
     }
 
     @Test
+    public void testFloatAndInteger(){
+        Check(true, "6999999 >= 6999987");
+        Check(true, "699999.9 >= 699998.7");
+        Check(true, "699999.9 >= 699998");
+
+        Check(true, "6999999 <= 7999987");
+        Check(true, "699999.9 <= 799998.7");
+        Check(true, "699999.9 >= 799998");
+
+        Check(true, "6999999 == 6999999");
+        Check(true, "699999.9 == 6999999.9");
+
+        checkThrows( "699999.9 == AA");
+        checkThrows( "699999.9 !> A''A");
+    }
+
+    @Test
     public void testNotEqual(){
         Check(false, "A != A");
         Check(false, "B != b");

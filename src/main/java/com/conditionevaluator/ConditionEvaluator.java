@@ -74,6 +74,34 @@ public class ConditionEvaluator {
             }
         } else if (current.kind == TokenKind.OPENPARENTHESIS){
             result = parseParenthesizedExpression(tokens, iteratorCurrentPointer);
+        } if (current.kind == TokenKind.FLOAT || current.kind == TokenKind.INTEGER){
+            float lhs = evaluateInteger(tokens, iteratorCurrentPointer);
+            Token operation = iteratorCurrentPointer.getCurrent();
+            iteratorCurrentPointer.setCurrent(tokens.next());
+            float rhs = evaluateInteger(tokens, iteratorCurrentPointer);
+
+            switch (operation.kind){
+                case GREATERTHAN:
+                    result = lhs > rhs;
+                    break;
+                case LESSTHAN:
+                    result = lhs < rhs;
+                    break;
+                case GREATERTHANANDEQUAL:
+                    result = lhs >= rhs;
+                    break;
+                case LESSTHANANDEQUAL:
+                    result = rhs <= rhs;
+                    break;
+                case EQUAL:
+                    result = lhs == rhs;
+                    break;
+                case NOTEQUAL:
+                    result = lhs != rhs;
+                    break;
+                default:
+                    throw new IllegalArgumentException("Invalid comparision operator " + operation.text);
+            }
         }
 
         return result;
@@ -102,6 +130,21 @@ public class ConditionEvaluator {
 
             default:
                 throw new IllegalArgumentException("Expected string or bareword, found " + text);
+        }
+        iteratorCurrentPointer.setCurrent(tokens.next());
+        return result;
+    }
+
+    private static float evaluateInteger(Iterator<Token> tokens, IteratorCurrentPointer iteratorCurrentPointer){
+        float result;
+        float value = iteratorCurrentPointer.getCurrent().floatValue;
+        switch (iteratorCurrentPointer.getCurrent().kind){
+            case INTEGER:
+            case FLOAT:
+                result = value;
+                break;
+            default:
+                throw new IllegalArgumentException("Expected float or integer represented as float, found " + value);
         }
         iteratorCurrentPointer.setCurrent(tokens.next());
         return result;
@@ -160,6 +203,22 @@ public class ConditionEvaluator {
                 continue;
             }
 
+            pattern = Pattern.compile("^[+-]?([0-9]*[.])?[0-9]+", Pattern.CASE_INSENSITIVE);
+            token = getToken(pattern.matcher(input.substring(i)), TokenKind.FLOAT);
+            if (token != null){
+                tokens.add(token);
+                i += token.text.length();
+                continue;
+            }
+
+            pattern = Pattern.compile("^\\d+", Pattern.CASE_INSENSITIVE);
+            token = getToken(pattern.matcher(input.substring(i)), TokenKind.INTEGER);
+            if (token != null){
+                tokens.add(token);
+                i += token.text.length();
+                continue;
+            }
+
             pattern = Pattern.compile("^\\w+", Pattern.CASE_INSENSITIVE);
             token = getToken(pattern.matcher(input.substring(i)), TokenKind.BAREWORD);
             if (token != null){
@@ -190,6 +249,37 @@ public class ConditionEvaluator {
                 continue;
             }
 
+            pattern = Pattern.compile("^\\>\\=");
+            token = getToken(pattern.matcher(input.substring(i)), TokenKind.GREATERTHANANDEQUAL);
+            if (token != null){
+                tokens.add(token);
+                i += token.text.length();
+                continue;
+            }
+
+            pattern = Pattern.compile("^\\<\\=");
+            token = getToken(pattern.matcher(input.substring(i)), TokenKind.LESSTHANANDEQUAL);
+            if (token != null){
+                tokens.add(token);
+                i += token.text.length();
+                continue;
+            }
+
+            pattern = Pattern.compile("^<");
+            token = getToken(pattern.matcher(input.substring(i)), TokenKind.LESSTHAN);
+            if (token != null){
+                tokens.add(token);
+                i += 1;
+                continue;
+            }
+
+            pattern = Pattern.compile("^>");
+            token = getToken(pattern.matcher(input.substring(i)), TokenKind.GREATERTHAN);
+            if (token != null){
+                tokens.add(token);
+                i += 1;
+                continue;
+            }
 
             throw new IllegalArgumentException("Alphanumeric character is not part of a word. This should ideally never occur.");
 
